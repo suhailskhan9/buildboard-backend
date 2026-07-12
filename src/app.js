@@ -1,4 +1,5 @@
 import express from "express";
+import pool from "./db/database";
 
 const app = express();
 app.use(express.json())
@@ -18,9 +19,22 @@ app.get("/health", (req, res) => {
     })
 })
 
-app.get("/projects", (req, res) => {
-    res.json(projects)
-})
+app.get("/projects", async (req, res) => {
+    try{
+        const result = await pool.query("SELECT * FROM projects");
+        // pool.query returns rows, rowCount, command, fields ....
+        const projects = result.rows;
+        return res.status(200).json(projects);
+    }
+    catch(err){
+        console.log("Error while retrieving projects", err)
+        return res.status(500).json(
+            {
+                message: "Error while retrieving projects"
+            }
+        )
+    }
+});
 
 app.get("/projects/:id", (req, res) => {
     const id = parseInt(req.params.id);
