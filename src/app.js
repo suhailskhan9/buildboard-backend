@@ -4,9 +4,6 @@ import pool from "./db/database";
 const app = express();
 app.use(express.json())
 
-const projects = [];
-let nextProjectId = 1;
-
 app.get("/", (req, res) => {
     res.json({
         message: "Welcome to BuildBoard API"
@@ -127,18 +124,33 @@ app.patch("/projects/:id", async (req, res) => {
     }
 })
 
-app.delete("/projects/:id", (req, res) => {
-    const id = parseInt(req.params.id);
- 
-    const index = projects.findIndex(p => p.id === id);
-     if(index === -1 ) {
-        return res.status(404).json({
-            message: "Project Not Found"
+app.delete("/projects/:id", async (req, res) => {
+    try{
+        const id = Number(req.params.id);
+            
+        if(!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({
+                message: "Project id needs to be a number"
+            })
+        }
+
+        const result = await pool.query("DELETE FROM projects WHERE id = $1 RETURNING *", [id]);
+        const project = result.rows[0];
+
+        if(!project) {
+            return res.status(404).json({
+                message: "Project Not Found"
+            })
+        }
+
+        return res.status(200).json({message: "Project deleted successfully", project: project});
+    }
+    catch(err){
+        console.error("Error: ", err);
+        return res.status(500).json({
+            message: "Error while deleting the project"
         })
     }
-
-    const deletedProj = projects.splice(index, 1);
-    res.json({message: "Project Deleted", project: deletedProj[0]});
 })
 
 
