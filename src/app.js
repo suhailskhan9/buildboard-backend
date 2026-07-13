@@ -63,17 +63,33 @@ app.get("/projects/:id", async (req, res) => {
 
 })
 
-app.post("/projects", (req, res) => {
-    const projectName = req.body.projectName;
+app.post("/projects", async (req, res) => {
+    try{
+        const name = req.body.name;
+        const description = req.body.description;
+        const owner_id = Number(req.body.owner_id);
+        if(!Number.isInteger(owner_id) || owner_id <= 0) {
+            return res.status(400).json({
+                message: "Invalid input, owner id should be number"
+            })
+        }
+        if(typeof(name) !== 'string' || name.trim().length === 0){
+            return res.status(400).json({
+                message: "Invalid input, project name mandatory"
+            })
+        }
+        const result = await pool.query("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *", [name, description, owner_id])
+        
+        const project = result.rows[0];
 
-    const project = {
-        id: nextProjectId++,
-        projectName: projectName
+        return res.status(201).json(project);
     }
-
-    projects.push(project);
-
-    res.status(201).json(project);
+    catch(err) {
+        console.error("Error: ",err);
+        return res.status(500).json({
+            message: "Error while creating project"
+        })
+    }
 })
 
 app.patch("/projects/:id", (req, res) => {
