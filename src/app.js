@@ -36,19 +36,31 @@ app.get("/projects", async (req, res) => {
     }
 });
 
-app.get("/projects/:id", (req, res) => {
-    const id = parseInt(req.params.id);
+app.get("/projects/:id", async (req, res) => {
+    try{
+        const id = Number(req.params.id);
+        if(!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({
+                message: "Project id needs to be a number"
+            })
+        }
 
-    console.log('Id:  ---->',id);
-    const project = projects.find(p => p.id === id);
-
-    if(!project) {
-        return res.status(404).json({
-            message: "Project Not Found"
-        })
+        const result = await pool.query("SELECT * from projects WHERE id = $1", [id])
+        const project = result.rows[0];
+        if(!project){
+            return res.status(404).json({
+                message: "Project Not Found"
+            }) 
+        }
+        return res.status(200).json(project)
+    }
+    catch(err){
+        console.error(err)
+        return res.status(500).json({
+           message: "Error while retrieving project"
+        }) 
     }
 
-    res.json(project)
 })
 
 app.post("/projects", (req, res) => {
