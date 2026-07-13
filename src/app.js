@@ -92,21 +92,39 @@ app.post("/projects", async (req, res) => {
     }
 })
 
-app.patch("/projects/:id", (req, res) => {
-    const id = parseInt(req.params.id);
-    const projectName = req.body.projectName;
+app.patch("/projects/:id", async (req, res) => {
+    try{
+        const id = Number(req.params.id);
+        const name = req.body.name;
+        
+        if(!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({
+                message: "Project id needs to be a number"
+            })
+        }
 
-    const project = projects.find(p => p.id === id)
+        if(typeof(name) !== 'string' || name.trim().length === 0){
+            return res.status(400).json({
+                message: "Invalid input, project name mandatory"
+            })
+        }
 
-    if(!project) {
-        return res.status(404).json({
-            message: "Project Not Found"
+        const result = await pool.query("UPDATE projects SET name = $1 WHERE id = $2 RETURNING *", [name, id]);
+        const project = result.rows[0];
+
+        if(!project) {
+            return res.status(404).json({
+                message: "Project Not Found"
+            })
+        }
+        return res.status(200).json(project);
+    }
+    catch(err){
+        console.error("Error: ",err)
+        return res.status(500).json({
+            message: "Error while updating project details"
         })
     }
-
-    project.projectName = projectName;
-
-    res.json(project);
 })
 
 app.delete("/projects/:id", (req, res) => {
