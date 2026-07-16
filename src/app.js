@@ -58,6 +58,42 @@ app.post("/signup", async (req, res) => {
     }
 })
 
+app.post("/login", async (req, res) => {
+    try{
+        const email = req.body.email;
+        const password = req.body.password;
+
+        if(!email || !password) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const userResult = await pool.query("SELECT password_hash FROM users WHERE email = $1", [email])
+        if(userResult.rowCount === 0) {
+            return res.status(401).json({
+                message: "Invalid email or password"
+            })
+        }
+        const storedHash = userResult.rows[0].password_hash;
+
+        const isPasswordValid = await bcrypt.compare(password, storedHash);
+        if(!isPasswordValid) {
+            return res.status(401).json({
+                message: "Invalid email or password"
+            })
+        }
+
+        return res.status(200).json({
+            message: "Login successful"
+        })
+    }
+    catch(err) {
+        console.error("Login failed: ", err);
+        return res.status(500).json({
+            message: "Error while logging in"
+        })
+    }
+})
+
 app.get("/projects", async (req, res) => {
     try{
         const result = await pool.query("SELECT * FROM projects");
