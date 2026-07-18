@@ -102,7 +102,8 @@ app.post("/login", async (req, res) => {
 
 app.get("/projects", authMiddleware, async (req, res) => {
     try{
-        const result = await pool.query("SELECT * FROM projects");
+        const ownerId = req.user.id;
+        const result = await pool.query("SELECT * FROM projects WHERE owner_id = $1", [ownerId]);
         // pool.query returns rows, rowCount, command, fields ....
         const projects = result.rows;
         return res.status(200).json(projects);
@@ -120,13 +121,14 @@ app.get("/projects", authMiddleware, async (req, res) => {
 app.get("/projects/:id", authMiddleware, async (req, res) => {
     try{
         const id = Number(req.params.id);
+        const ownerId = req.user.id;
         if(!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({
                 message: "Project id needs to be a number"
             })
         }
 
-        const result = await pool.query("SELECT * from projects WHERE id = $1", [id])
+        const result = await pool.query("SELECT * from projects WHERE id = $1 AND owner_id = $2", [id, ownerId])
         const project = result.rows[0];
         if(!project){
             return res.status(404).json({
@@ -177,7 +179,8 @@ app.patch("/projects/:id", authMiddleware, async (req, res) => {
     try{
         const id = Number(req.params.id);
         const name = req.body.name;
-        
+        const ownerId = req.user.id;
+
         if(!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({
                 message: "Project id needs to be a number"
@@ -190,7 +193,7 @@ app.patch("/projects/:id", authMiddleware, async (req, res) => {
             })
         }
 
-        const result = await pool.query("UPDATE projects SET name = $1 WHERE id = $2 RETURNING *", [name, id]);
+        const result = await pool.query("UPDATE projects SET name = $1 WHERE id = $2 AND owner_id = $3 RETURNING *", [name, id, ownerId]);
         const project = result.rows[0];
 
         if(!project) {
@@ -211,14 +214,15 @@ app.patch("/projects/:id", authMiddleware, async (req, res) => {
 app.delete("/projects/:id", authMiddleware, async (req, res) => {
     try{
         const id = Number(req.params.id);
-            
+        const ownerId = req.user.id;
+        
         if(!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({
                 message: "Project id needs to be a number"
             })
         }
 
-        const result = await pool.query("DELETE FROM projects WHERE id = $1 RETURNING *", [id]);
+        const result = await pool.query("DELETE FROM projects WHERE id = $1 AND owner_id = $2 RETURNING *", [id, ownerId]);
         const project = result.rows[0];
 
         if(!project) {
