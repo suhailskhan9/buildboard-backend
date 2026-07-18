@@ -1,6 +1,8 @@
 import express from "express";
 import pool from "./db/database";
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import authMiddleware from "./middleware/authMiddleware";
 
 const app = express();
 app.use(express.json())
@@ -67,12 +69,13 @@ app.post("/login", async (req, res) => {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
-        const userResult = await pool.query("SELECT password_hash FROM users WHERE email = $1", [email])
+        const userResult = await pool.query("SELECT id, password_hash FROM users WHERE email = $1", [email])
         if(userResult.rowCount === 0) {
             return res.status(401).json({
                 message: "Invalid email or password"
             })
         }
+        const id = userResult.rows[0].id;
         const storedHash = userResult.rows[0].password_hash;
 
         const isPasswordValid = await bcrypt.compare(password, storedHash);
@@ -82,8 +85,11 @@ app.post("/login", async (req, res) => {
             })
         }
 
+        const token = jwt.sign({ id, email }, process.env.SECRET_KEY);
+
         return res.status(200).json({
-            message: "Login successful"
+            message: "Login successful",
+            token: token
         })
     }
     catch(err) {
@@ -94,7 +100,7 @@ app.post("/login", async (req, res) => {
     }
 })
 
-app.get("/projects", async (req, res) => {
+app.get("/projects", authMiddleware, async (req, res) => {
     try{
         const result = await pool.query("SELECT * FROM projects");
         // pool.query returns rows, rowCount, command, fields ....
@@ -111,7 +117,7 @@ app.get("/projects", async (req, res) => {
     }
 });
 
-app.get("/projects/:id", async (req, res) => {
+app.get("/projects/:id", authMiddleware, async (req, res) => {
     try{
         const id = Number(req.params.id);
         if(!Number.isInteger(id) || id <= 0) {
@@ -138,12 +144,12 @@ app.get("/projects/:id", async (req, res) => {
 
 })
 
-app.post("/projects", async (req, res) => {
+app.post("/projects", authMiddleware, async (req, res) => {
     try{
         const name = req.body.name;
         const description = req.body.description;
-        const owner_id = Number(req.body.owner_id);
-        if(!Number.isInteger(owner_id) || owner_id <= 0) {
+        const ownerId = req.user.id;
+        if(!Number.isInteger(ownerId) || ownerId <= 0) {
             return res.status(400).json({
                 message: "Invalid input, owner id should be number"
             })
@@ -153,7 +159,7 @@ app.post("/projects", async (req, res) => {
                 message: "Invalid input, project name mandatory"
             })
         }
-        const result = await pool.query("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *", [name, description, owner_id])
+        const result = await pool.query("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *", [name, description, ownerId])
         
         const project = result.rows[0];
 
@@ -167,7 +173,7 @@ app.post("/projects", async (req, res) => {
     }
 })
 
-app.patch("/projects/:id", async (req, res) => {
+app.patch("/projects/:id", authMiddleware, async (req, res) => {
     try{
         const id = Number(req.params.id);
         const name = req.body.name;
@@ -202,7 +208,7 @@ app.patch("/projects/:id", async (req, res) => {
     }
 })
 
-app.delete("/projects/:id", async (req, res) => {
+app.delete("/projects/:id", authMiddleware, async (req, res) => {
     try{
         const id = Number(req.params.id);
             
