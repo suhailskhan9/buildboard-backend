@@ -7,7 +7,6 @@ const projectsRouter = express.Router()
 projectsRouter.use(authMiddleware);
 
 projectsRouter.get("/", async (req, res) => {
-    throw new Error("Testing error middleware");
         const ownerId = req.user.id;
         const result = await pool.query("SELECT * FROM projects WHERE owner_id = $1", [ownerId]);
         // pool.query returns rows, rowCount, command, fields ....
