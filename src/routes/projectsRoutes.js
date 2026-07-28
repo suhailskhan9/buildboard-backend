@@ -7,25 +7,15 @@ const projectsRouter = express.Router()
 projectsRouter.use(authMiddleware);
 
 projectsRouter.get("/", async (req, res) => {
-    try{
+    throw new Error("Testing error middleware");
         const ownerId = req.user.id;
         const result = await pool.query("SELECT * FROM projects WHERE owner_id = $1", [ownerId]);
         // pool.query returns rows, rowCount, command, fields ....
         const projects = result.rows;
         return res.status(200).json(projects);
-    }
-    catch(err){
-        console.error("Error while retrieving projects", err)
-        return res.status(500).json(
-            {
-                message: "Error while retrieving projects"
-            }
-        )
-    }
 });
 
 projectsRouter.get("/:id", async (req, res) => {
-    try{
         const id = Number(req.params.id);
         const ownerId = req.user.id;
         if(!Number.isInteger(id) || id <= 0) {
@@ -42,18 +32,9 @@ projectsRouter.get("/:id", async (req, res) => {
             }) 
         }
         return res.status(200).json(project)
-    }
-    catch(err){
-        console.error(err)
-        return res.status(500).json({
-           message: "Error while retrieving project"
-        }) 
-    }
-
 })
 
 projectsRouter.post("/", async (req, res) => {
-    try{
         const { name, description } = req.body ?? {};
         
         const ownerId = req.user.id;
@@ -68,17 +49,9 @@ projectsRouter.post("/", async (req, res) => {
         const project = result.rows[0];
 
         return res.status(201).json(project);
-    }
-    catch(err) {
-        console.error("Error: ",err);
-        return res.status(500).json({
-            message: "Error while creating project"
-        })
-    }
 })
 
 projectsRouter.patch("/:id", async (req, res) => {
-    try{
         const id = Number(req.params.id);
         const { name } = req.body ?? {};
         const ownerId = req.user.id;
@@ -104,17 +77,9 @@ projectsRouter.patch("/:id", async (req, res) => {
             })
         }
         return res.status(200).json(project);
-    }
-    catch(err){
-        console.error("Error: ",err)
-        return res.status(500).json({
-            message: "Error while updating project details"
-        })
-    }
 })
 
 projectsRouter.delete("/:id", async (req, res) => {
-    try{
         const id = Number(req.params.id);
         const ownerId = req.user.id;
         
@@ -134,13 +99,6 @@ projectsRouter.delete("/:id", async (req, res) => {
         }
 
         return res.status(200).json({message: "Project deleted successfully", project: project});
-    }
-    catch(err){
-        console.error("Error: ", err);
-        return res.status(500).json({
-            message: "Error while deleting the project"
-        })
-    }
 })
 
 export default projectsRouter;

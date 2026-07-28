@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken";
 const authRouter = express.Router();
 
 authRouter.post("/signup", async (req, res) => {
-    try{
         const { email, username, password } = req.body ?? {};
         
         if(!email || !username || !password) {
@@ -35,17 +34,9 @@ authRouter.post("/signup", async (req, res) => {
         return res.status(201).json({
             message: "User created successfully"
         })
-    }
-    catch(err) {
-        console.error("Signup failed: ", err)
-        return res.status(500).json({
-            message: "Error while creating account"
-        })
-    }
 })
 
 authRouter.post("/login", async (req, res) => {
-    try{
         const { email, password } = req.body ?? {};
 
         if(!email || !password) {
@@ -74,13 +65,6 @@ authRouter.post("/login", async (req, res) => {
             message: "Login successful",
             token: token
         })
-    }
-    catch(err) {
-        console.error("Login failed: ", err);
-        return res.status(500).json({
-            message: "Error while logging in"
-        })
-    }
 })
 
 export default authRouter;
