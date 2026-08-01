@@ -1,6 +1,8 @@
 import express from 'express';
 import pool from '../db/database.js';
 import authMiddleware from '../middleware/authMiddleware.js';
+import { projectIdSchema } from '../schemas/projectIdSchema.js';
+import validate from '../middleware/validate.js';
 
 const projectsRouter = express.Router()
 
@@ -14,14 +16,9 @@ projectsRouter.get("/", async (req, res) => {
         return res.status(200).json(projects);
 });
 
-projectsRouter.get("/:id", async (req, res) => {
-        const id = Number(req.params.id);
+projectsRouter.get("/:id", validate(projectIdSchema, "params"), async (req, res) => {
+        const { id } = req.params;
         const ownerId = req.user.id;
-        if(!Number.isInteger(id) || id <= 0) {
-            return res.status(400).json({
-                message: "Project id needs to be a number"
-            })
-        }
 
         const result = await pool.query("SELECT * from projects WHERE id = $1 AND owner_id = $2", [id, ownerId])
         const project = result.rows[0];
@@ -34,15 +31,10 @@ projectsRouter.get("/:id", async (req, res) => {
 })
 
 projectsRouter.post("/", async (req, res) => {
-        const { name, description } = req.body ?? {};
+        const { name, description } = req.body;
         
         const ownerId = req.user.id;
 
-        if(typeof(name) !== 'string' || name.trim().length === 0){
-            return res.status(400).json({
-                message: "Invalid input, project name mandatory"
-            })
-        }
         const result = await pool.query("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *", [name, description, ownerId])
         
         const project = result.rows[0];
@@ -50,22 +42,10 @@ projectsRouter.post("/", async (req, res) => {
         return res.status(201).json(project);
 })
 
-projectsRouter.patch("/:id", async (req, res) => {
-        const id = Number(req.params.id);
-        const { name } = req.body ?? {};
+projectsRouter.patch("/:id", validate(projectIdSchema, "params"), async (req, res) => {
+        const { id } = req.params;
+        const { name } = req.body;
         const ownerId = req.user.id;
-
-        if(!Number.isInteger(id) || id <= 0) {
-            return res.status(400).json({
-                message: "Project id needs to be a number"
-            })
-        }
-
-        if(typeof(name) !== 'string' || name.trim().length === 0){
-            return res.status(400).json({
-                message: "Invalid input, project name mandatory"
-            })
-        }
 
         const result = await pool.query("UPDATE projects SET name = $1 WHERE id = $2 AND owner_id = $3 RETURNING *", [name, id, ownerId]);
         const project = result.rows[0];
@@ -78,16 +58,10 @@ projectsRouter.patch("/:id", async (req, res) => {
         return res.status(200).json(project);
 })
 
-projectsRouter.delete("/:id", async (req, res) => {
-        const id = Number(req.params.id);
+projectsRouter.delete("/:id", validate(projectIdSchema, "params"), async (req, res) => {
+        const { id } = req.params
         const ownerId = req.user.id;
         
-        if(!Number.isInteger(id) || id <= 0) {
-            return res.status(400).json({
-                message: "Project id needs to be a number"
-            })
-        }
-
         const result = await pool.query("DELETE FROM projects WHERE id = $1 AND owner_id = $2 RETURNING *", [id, ownerId]);
         const project = result.rows[0];
 

@@ -2,17 +2,13 @@ import express from 'express';
 import pool from "../db/database.js";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
+import validate from '../middleware/validate.js';
+import { signupSchema, loginSchema } from '../schemas/authSchemas.js';
 
 const authRouter = express.Router();
 
-authRouter.post("/signup", async (req, res) => {
-        const { email, username, password } = req.body ?? {};
-        
-        if(!email || !username || !password) {
-            return res.status(400).json({
-                message: "Missing required fields"
-            })
-        }
+authRouter.post("/signup", validate(signupSchema), async (req, res) => {
+        const { email, username, password } = req.body;
         
         const existingEmail = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
         if(existingEmail.rowCount !== 0) {
@@ -36,12 +32,8 @@ authRouter.post("/signup", async (req, res) => {
         })
 })
 
-authRouter.post("/login", async (req, res) => {
-        const { email, password } = req.body ?? {};
-
-        if(!email || !password) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
+authRouter.post("/login", validate(loginSchema), async (req, res) => {
+        const { email, password } = req.body; 
 
         const userResult = await pool.query("SELECT id, password_hash FROM users WHERE email = $1", [email])
         if(userResult.rowCount === 0) {
