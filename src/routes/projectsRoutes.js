@@ -1,8 +1,8 @@
 import express from 'express';
 import pool from '../db/database.js';
 import authMiddleware from '../middleware/authMiddleware.js';
-import { projectIdSchema } from '../schemas/projectIdSchema.js';
 import validate from '../middleware/validate.js';
+import { projectIdSchema, createProjectSchema, updateProjectSchema } from '../schemas/projectSchemas.js';
 
 const projectsRouter = express.Router()
 
@@ -30,7 +30,7 @@ projectsRouter.get("/:id", validate(projectIdSchema, "params"), async (req, res)
         return res.status(200).json(project)
 })
 
-projectsRouter.post("/", async (req, res) => {
+projectsRouter.post("/", validate(createProjectSchema), async (req, res) => {
         const { name, description } = req.body;
         
         const ownerId = req.user.id;
@@ -42,7 +42,7 @@ projectsRouter.post("/", async (req, res) => {
         return res.status(201).json(project);
 })
 
-projectsRouter.patch("/:id", validate(projectIdSchema, "params"), async (req, res) => {
+projectsRouter.patch("/:id", validate(projectIdSchema, "params"), validate(updateProjectSchema), async (req, res) => {
         const { id } = req.params;
         const { name } = req.body;
         const ownerId = req.user.id;
