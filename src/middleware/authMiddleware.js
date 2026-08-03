@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import logger from '../config/logger.js';
 
 function authMiddleware(req, res, next) {
     try{
@@ -23,8 +24,16 @@ function authMiddleware(req, res, next) {
         next();
     }
     catch(err) {
-        console.error("Error in auth middleware: ", err);
-        return res.status(401).json({
+            logger.warn(
+                { 
+                    method: req.method, 
+                    url: req.originalUrl, 
+                    error: err.message
+                }, 
+                "JWT authentication failed"
+            );
+        
+            return res.status(401).json({
             message: "Authentication failed"
         })
     }

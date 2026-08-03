@@ -1,8 +1,9 @@
 import express from 'express';
-import pool from '../db/database.js';
+import pool from '../config/database.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import validate from '../middleware/validate.js';
 import { projectIdSchema, createProjectSchema, updateProjectSchema } from '../schemas/projectSchemas.js';
+import logger from '../config/logger.js';
 
 const projectsRouter = express.Router()
 
@@ -39,6 +40,14 @@ projectsRouter.post("/", validate(createProjectSchema), async (req, res) => {
         
         const project = result.rows[0];
 
+        logger.info(
+            {
+                userId: ownerId,
+                projectId: project.id
+            },
+            "Project created"
+        )
+
         return res.status(201).json(project);
 })
 
@@ -55,6 +64,15 @@ projectsRouter.patch("/:id", validate(projectIdSchema, "params"), validate(updat
                 message: "Project Not Found"
             })
         }
+
+        logger.info(
+            {
+                userId: ownerId,
+                projectId: project.id
+            },
+            "Project updated"
+        )
+
         return res.status(200).json(project);
 })
 
@@ -70,6 +88,14 @@ projectsRouter.delete("/:id", validate(projectIdSchema, "params"), async (req, r
                 message: "Project Not Found"
             })
         }
+
+        logger.info(
+            {
+                userId: ownerId,
+                projectId: project.id
+            },
+            "Project deleted"
+        )
 
         return res.status(200).json({message: "Project deleted successfully", project: project});
 })
