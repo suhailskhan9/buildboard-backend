@@ -5,8 +5,8 @@ export async function getAllProjects(ownerId) {
     return result.rows;
 }
 
-export async function createProject({ name, description, ownerId}) {
-    const result = await pool.query("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *", [name, description, ownerId]);
+export async function createProject(client,{ name, description, ownerId }){
+    const result = await client.query("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *", [name, description, ownerId]);
     return result.rows[0];
 }
 
