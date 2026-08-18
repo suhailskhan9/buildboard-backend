@@ -1,7 +1,16 @@
 import logger from "../config/logger.js";
 import AppError from "../errors/AppError.js";
+import { translateDBError } from "../errors/databaseError.js";
 
 function errorMiddleware(err, req, res, next) {
+
+    const translatedError = translateDBError(err);
+    if(translatedError) {
+        return res.status(translatedError.statusCode).json({
+            message: translatedError.message
+        });
+    }
+
     if(err instanceof AppError){
         return res.status(err.statusCode).json({
             message: err.message
