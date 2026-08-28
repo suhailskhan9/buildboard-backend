@@ -2,7 +2,7 @@
     import jwt from "jsonwebtoken";
     import logger from '../config/logger.js';
     import AppError from '../errors/AppError.js';
-
+    import { config } from '../config/config.js';
     import * as authRepository from '../repositories/authRepository.js';
 
     export async function signup({ email, username, password}) {
@@ -51,7 +51,7 @@
             throw new AppError(401, "Invalid email or password");
         }
 
-        const token = jwt.sign({ id, email }, process.env.SECRET_KEY);
+        const token = jwt.sign({ id, email }, config.jwt.secret);
 
         logger.info(
             {userId: id},

@@ -1,12 +1,11 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import { config } from './config/config.js';
 
 import app from './app.js';
 import pool from './config/database.js';
 import logger from './config/logger.js';
 
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
 try {
     const res = await pool.query("SELECT NOW()");
