@@ -14,6 +14,8 @@ export const config = z.object({
     }),
     jwt: z.object({
         secret: z.string().min(32),
+        algorithm: z.literal("HS256"),
+        expiresIn: z.literal("15m")
     }),
 }).parse({
     port: process.env.PORT,
@@ -27,6 +29,8 @@ export const config = z.object({
     },
 
     jwt: {
-        secret: process.env.SECRET_KEY
+        secret: process.env.SECRET_KEY,
+        algorithm: "HS256",
+        expiresIn: "15m"
     }
 })

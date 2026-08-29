@@ -51,7 +51,9 @@
             throw new AppError(401, "Invalid email or password");
         }
 
-        const token = jwt.sign({ id, email }, config.jwt.secret);
+        const token = jwt.sign({ id, email }, config.jwt.secret, { 
+            algorithm: config.jwt.algorithm, expiresIn: config.jwt.expiresIn 
+        });
 
         logger.info(
             {userId: id},
