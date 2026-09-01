@@ -27,6 +27,7 @@ function authMiddleware(req, res, next) {
         next();
     }
     catch(err) {
+        if(err instanceof jwt.JsonWebTokenError ) {
             logger.warn(
                 { 
                     method: req.method, 
@@ -35,10 +36,11 @@ function authMiddleware(req, res, next) {
                 }, 
                 "JWT authentication failed"
             );
-        
             return res.status(401).json({
-            message: "Authentication failed"
-        })
+                message: "Authentication failed"
+            })
+        }
+        next(err);
     }
 }
 

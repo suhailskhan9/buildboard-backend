@@ -9,8 +9,8 @@ export async function getAllProjects(userId) {
     return projects;
 }
 
-export async function getProjectById({ id, userId }) {
-        const project = await projectRepository.getProjectById({ id, userId });
+export async function getProjectById({ projectId, userId }) {
+        const project = await projectRepository.getProjectById({ projectId, userId });
         if(!project){
             throw new AppError(404, "Project not found");
         }
@@ -46,8 +46,8 @@ export async function createProject({name, description, userId}) {
         return project;
 }
 
-export async function updateProject({ id, name, userId }) {
-    const project = await projectRepository.updateProject({ id, name, userId });
+export async function updateProject({ projectId, name, userId }) {
+    const project = await projectRepository.updateProject({ projectId, name, userId });
     if(!project) {
         throw new AppError(404, "Project not found")
     }
@@ -62,8 +62,8 @@ export async function updateProject({ id, name, userId }) {
     return project;
 }
 
-export async function deleteProject({id, userId}) {
-    const project = await projectRepository.deleteProject({ id, userId });
+export async function deleteProject({projectId, userId}) {
+    const project = await projectRepository.deleteProject({ projectId, userId });
 
     if(!project) {
         throw new AppError(404, "Project not found");

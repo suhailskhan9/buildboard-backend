@@ -9,10 +9,10 @@ export async function getAllProjectsController(req, res) {
 
 
 export async function getProjectByIdController(req, res) {
-    const { id } = req.params;
+    const { projectId } = req.params;
     const userId = req.user.id;
 
-    const project = await projectService.getProjectById({ id, userId });
+    const project = await projectService.getProjectById({ projectId, userId });
     return res.status(200).json(project)
 }
 
@@ -28,20 +28,20 @@ export async function createProjectController(req, res) {
 
 
 export async function updateProjectController(req, res) {
-    const { id } = req.params;
+    const { projectId } = req.params;
     const { name } = req.body;
     const userId = req.user.id;
 
-    const project = await projectService.updateProject({ id, name, userId });
+    const project = await projectService.updateProject({ projectId, name, userId });
 
     return res.status(200).json(project);
 }
 
 export async function deleteProjectController(req, res) {
-    const { id } = req.params
+    const { projectId } = req.params
     const userId = req.user.id;
         
-    const project = await projectService.deleteProject({ id, userId })
+    const project = await projectService.deleteProject({ projectId, userId })
 
     return res.status(200).json({message: "Project deleted successfully", project: project});
 

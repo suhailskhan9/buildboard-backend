@@ -1,0 +1,26 @@
+import * as taskRepository from '../repositories/taskRepository.js'
+import * as projectMemberRepository from '../repositories/projectMemberRepository.js';
+import AppError from '../errors/AppError.js';
+
+export async function createTask({projectId, userId, taskData}) {
+    const membership = await projectMemberRepository.getMembership({ projectId, userId });
+    if(!membership) {
+       throw new AppError(404, "Project not found");  
+    }
+
+    if(membership.role !== 'owner' && membership.role !== 'editor') {
+        throw new AppError(403, "Not allowed to create task");
+    }
+
+    if(taskData.assigned_to_id !== undefined) {
+        const assigneeMembership = await projectMemberRepository.getMembership({ projectId, userId: taskData.assigned_to_id });
+    
+        if(!assigneeMembership) {
+            throw new AppError(400, "Assigned user must be a member of the project");
+        }
+    }
+
+    const task = await taskRepository.createTask({ projectId, taskData });
+
+    return task;
+}   

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const projectIdSchema = z.object({
-    id: z.coerce.number().int().positive()
+    projectId: z.coerce.number().int().positive()
 })
 
 export const createProjectSchema = z.object({

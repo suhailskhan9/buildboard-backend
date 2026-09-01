@@ -3,6 +3,7 @@ import authMiddleware from '../middleware/authMiddleware.js';
 import validate from '../middleware/validate.js';
 import { projectIdSchema, createProjectSchema, updateProjectSchema } from '../schemas/projectSchemas.js';
 import { createProjectController, deleteProjectController, getAllProjectsController, getProjectByIdController, updateProjectController } from '../controllers/projectController.js';
+import tasksRouter from './tasksRoutes.js';
 
 const projectsRouter = express.Router()
 
@@ -10,12 +11,14 @@ projectsRouter.use(authMiddleware);
 
 projectsRouter.get("/", getAllProjectsController);
 
-projectsRouter.get("/:id", getProjectByIdController);
+projectsRouter.get("/:projectId", validate(projectIdSchema, "params"), getProjectByIdController);
 
 projectsRouter.post("/", validate(createProjectSchema), createProjectController);
 
-projectsRouter.patch("/:id", validate(projectIdSchema, "params"), validate(updateProjectSchema), updateProjectController);
+projectsRouter.patch("/:projectId", validate(projectIdSchema, "params"), validate(updateProjectSchema), updateProjectController);
 
-projectsRouter.delete("/:id", validate(projectIdSchema, "params"), deleteProjectController);
+projectsRouter.delete("/:projectId", validate(projectIdSchema, "params"), deleteProjectController);
+
+projectsRouter.use('/', tasksRouter);
 
 export default projectsRouter;
